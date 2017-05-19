@@ -2421,6 +2421,811 @@ SELECT gin_debug_query_value_path('similar_product_ids . ? (# = "B0002W4TL2") . 
  
 (1 row)
 
+-- -extract jsonpath entries for index scan
+SELECT gin_debug_jsonpath_value_path('lax    $');
+ gin_debug_jsonpath_value_path 
+-------------------------------
+ NULL                         +
+ 
+(1 row)
+
+SELECT gin_debug_jsonpath_value_path('strict $');
+ gin_debug_jsonpath_value_path 
+-------------------------------
+ NULL                         +
+ 
+(1 row)
+
+SELECT gin_debug_jsonpath_value_path('lax    $.a');
+ gin_debug_jsonpath_value_path 
+-------------------------------
+ NULL                         +
+ 
+(1 row)
+
+SELECT gin_debug_jsonpath_value_path('strict $.a');
+ gin_debug_jsonpath_value_path 
+-------------------------------
+ NULL                         +
+ 
+(1 row)
+
+SELECT gin_debug_jsonpath_value_path('lax    exists($)');
+ gin_debug_jsonpath_value_path 
+-------------------------------
+ * = * , entry 0              +
+ 
+(1 row)
+
+SELECT gin_debug_jsonpath_value_path('strict exists($)');
+ gin_debug_jsonpath_value_path 
+-------------------------------
+ * = * , entry 0              +
+ 
+(1 row)
+
+SELECT gin_debug_jsonpath_value_path('lax    exists($.a)');
+ gin_debug_jsonpath_value_path 
+-------------------------------
+ OR                           +
+   #.a = * , entry 0          +
+   a = * , entry 1            +
+ 
+(1 row)
+
+SELECT gin_debug_jsonpath_value_path('strict exists($.a)');
+ gin_debug_jsonpath_value_path 
+-------------------------------
+ a = * , entry 0              +
+ 
+(1 row)
+
+SELECT gin_debug_jsonpath_value_path('lax    exists($.a.b)');
+ gin_debug_jsonpath_value_path 
+-------------------------------
+ OR                           +
+   #.a.#.b = * , entry 0      +
+   #.a.b = * , entry 1        +
+   a.#.b = * , entry 2        +
+   a.b = * , entry 3          +
+ 
+(1 row)
+
+SELECT gin_debug_jsonpath_value_path('strict exists($.a.b)');
+ gin_debug_jsonpath_value_path 
+-------------------------------
+ a.b = * , entry 0            +
+ 
+(1 row)
+
+SELECT gin_debug_jsonpath_value_path('lax    exists($ ? (@.b == 3).c.d)');
+ gin_debug_jsonpath_value_path 
+-------------------------------
+ OR                           +
+   OR                         +
+     #.b = 3 , entry 6        +
+     b = 3 , entry 7          +
+   OR                         +
+     #.b = 3 , entry 6        +
+     b = 3 , entry 7          +
+   OR                         +
+     #.b = 3 , entry 6        +
+     b = 3 , entry 7          +
+   OR                         +
+     #.b = 3 , entry 6        +
+     b = 3 , entry 7          +
+ 
+(1 row)
+
+SELECT gin_debug_jsonpath_value_path('strict exists($ ? (@.b == 3).c.d)');
+ gin_debug_jsonpath_value_path 
+-------------------------------
+ b = 3 , entry 0              +
+ 
+(1 row)
+
+SELECT gin_debug_jsonpath_value_path('lax    exists($.a ? (@.b == 3).c.d ? (@.e == "aa" || @ == 1))');
+      gin_debug_jsonpath_value_path       
+------------------------------------------
+ OR                                      +
+   AND                                   +
+     OR                                  +
+       #.a.#.b = 3 , entry 42            +
+       #.a.b = 3 , entry 43              +
+     OR                                  +
+       #.a.#.c.#.d.#.e = "aa" , entry 44 +
+       #.a.#.c.#.d.e = "aa" , entry 45   +
+       #.a.#.c.#.d = 1 , entry 46        +
+     OR                                  +
+       #.a.#.c.d.#.e = "aa" , entry 47   +
+       #.a.#.c.d.e = "aa" , entry 48     +
+       #.a.#.c.d = 1 , entry 49          +
+     OR                                  +
+       #.a.c.#.d.#.e = "aa" , entry 50   +
+       #.a.c.#.d.e = "aa" , entry 51     +
+       #.a.c.#.d = 1 , entry 52          +
+     OR                                  +
+       #.a.c.d.#.e = "aa" , entry 53     +
+       #.a.c.d.e = "aa" , entry 54       +
+       #.a.c.d = 1 , entry 55            +
+   AND                                   +
+     OR                                  +
+       #.a.#.b = 3 , entry 42            +
+       #.a.b = 3 , entry 43              +
+     OR                                  +
+       #.a.#.c.#.d.#.e = "aa" , entry 44 +
+       #.a.#.c.#.d.e = "aa" , entry 45   +
+       #.a.#.c.#.d = 1 , entry 46        +
+     OR                                  +
+       #.a.#.c.d.#.e = "aa" , entry 47   +
+       #.a.#.c.d.e = "aa" , entry 48     +
+       #.a.#.c.d = 1 , entry 49          +
+     OR                                  +
+       #.a.c.#.d.#.e = "aa" , entry 50   +
+       #.a.c.#.d.e = "aa" , entry 51     +
+       #.a.c.#.d = 1 , entry 52          +
+     OR                                  +
+       #.a.c.d.#.e = "aa" , entry 53     +
+       #.a.c.d.e = "aa" , entry 54       +
+       #.a.c.d = 1 , entry 55            +
+   AND                                   +
+     OR                                  +
+       #.a.#.b = 3 , entry 42            +
+       #.a.b = 3 , entry 43              +
+     OR                                  +
+       #.a.#.c.#.d.#.e = "aa" , entry 44 +
+       #.a.#.c.#.d.e = "aa" , entry 45   +
+       #.a.#.c.#.d = 1 , entry 46        +
+     OR                                  +
+       #.a.#.c.d.#.e = "aa" , entry 47   +
+       #.a.#.c.d.e = "aa" , entry 48     +
+       #.a.#.c.d = 1 , entry 49          +
+     OR                                  +
+       #.a.c.#.d.#.e = "aa" , entry 50   +
+       #.a.c.#.d.e = "aa" , entry 51     +
+       #.a.c.#.d = 1 , entry 52          +
+     OR                                  +
+       #.a.c.d.#.e = "aa" , entry 53     +
+       #.a.c.d.e = "aa" , entry 54       +
+       #.a.c.d = 1 , entry 55            +
+   AND                                   +
+     OR                                  +
+       #.a.#.b = 3 , entry 42            +
+       #.a.b = 3 , entry 43              +
+     OR                                  +
+       #.a.#.c.#.d.#.e = "aa" , entry 44 +
+       #.a.#.c.#.d.e = "aa" , entry 45   +
+       #.a.#.c.#.d = 1 , entry 46        +
+     OR                                  +
+       #.a.#.c.d.#.e = "aa" , entry 47   +
+       #.a.#.c.d.e = "aa" , entry 48     +
+       #.a.#.c.d = 1 , entry 49          +
+     OR                                  +
+       #.a.c.#.d.#.e = "aa" , entry 50   +
+       #.a.c.#.d.e = "aa" , entry 51     +
+       #.a.c.#.d = 1 , entry 52          +
+     OR                                  +
+       #.a.c.d.#.e = "aa" , entry 53     +
+       #.a.c.d.e = "aa" , entry 54       +
+       #.a.c.d = 1 , entry 55            +
+   AND                                   +
+     OR                                  +
+       a.#.b = 3 , entry 98              +
+       a.b = 3 , entry 99                +
+     OR                                  +
+       a.#.c.#.d.#.e = "aa" , entry 100  +
+       a.#.c.#.d.e = "aa" , entry 101    +
+       a.#.c.#.d = 1 , entry 102         +
+     OR                                  +
+       a.#.c.d.#.e = "aa" , entry 103    +
+       a.#.c.d.e = "aa" , entry 104      +
+       a.#.c.d = 1 , entry 105           +
+     OR                                  +
+       a.c.#.d.#.e = "aa" , entry 106    +
+       a.c.#.d.e = "aa" , entry 107      +
+       a.c.#.d = 1 , entry 108           +
+     OR                                  +
+       a.c.d.#.e = "aa" , entry 109      +
+       a.c.d.e = "aa" , entry 110        +
+       a.c.d = 1 , entry 111             +
+   AND                                   +
+     OR                                  +
+       a.#.b = 3 , entry 98              +
+       a.b = 3 , entry 99                +
+     OR                                  +
+       a.#.c.#.d.#.e = "aa" , entry 100  +
+       a.#.c.#.d.e = "aa" , entry 101    +
+       a.#.c.#.d = 1 , entry 102         +
+     OR                                  +
+       a.#.c.d.#.e = "aa" , entry 103    +
+       a.#.c.d.e = "aa" , entry 104      +
+       a.#.c.d = 1 , entry 105           +
+     OR                                  +
+       a.c.#.d.#.e = "aa" , entry 106    +
+       a.c.#.d.e = "aa" , entry 107      +
+       a.c.#.d = 1 , entry 108           +
+     OR                                  +
+       a.c.d.#.e = "aa" , entry 109      +
+       a.c.d.e = "aa" , entry 110        +
+       a.c.d = 1 , entry 111             +
+   AND                                   +
+     OR                                  +
+       a.#.b = 3 , entry 98              +
+       a.b = 3 , entry 99                +
+     OR                                  +
+       a.#.c.#.d.#.e = "aa" , entry 100  +
+       a.#.c.#.d.e = "aa" , entry 101    +
+       a.#.c.#.d = 1 , entry 102         +
+     OR                                  +
+       a.#.c.d.#.e = "aa" , entry 103    +
+       a.#.c.d.e = "aa" , entry 104      +
+       a.#.c.d = 1 , entry 105           +
+     OR                                  +
+       a.c.#.d.#.e = "aa" , entry 106    +
+       a.c.#.d.e = "aa" , entry 107      +
+       a.c.#.d = 1 , entry 108           +
+     OR                                  +
+       a.c.d.#.e = "aa" , entry 109      +
+       a.c.d.e = "aa" , entry 110        +
+       a.c.d = 1 , entry 111             +
+   AND                                   +
+     OR                                  +
+       a.#.b = 3 , entry 98              +
+       a.b = 3 , entry 99                +
+     OR                                  +
+       a.#.c.#.d.#.e = "aa" , entry 100  +
+       a.#.c.#.d.e = "aa" , entry 101    +
+       a.#.c.#.d = 1 , entry 102         +
+     OR                                  +
+       a.#.c.d.#.e = "aa" , entry 103    +
+       a.#.c.d.e = "aa" , entry 104      +
+       a.#.c.d = 1 , entry 105           +
+     OR                                  +
+       a.c.#.d.#.e = "aa" , entry 106    +
+       a.c.#.d.e = "aa" , entry 107      +
+       a.c.#.d = 1 , entry 108           +
+     OR                                  +
+       a.c.d.#.e = "aa" , entry 109      +
+       a.c.d.e = "aa" , entry 110        +
+       a.c.d = 1 , entry 111             +
+ 
+(1 row)
+
+SELECT gin_debug_jsonpath_value_path('strict exists($.a ? (@.b == 3).c.d ? (@.e == "aa" || @ == 1))');
+ gin_debug_jsonpath_value_path 
+-------------------------------
+ AND                          +
+   a.b = 3 , entry 0          +
+   OR                         +
+     a.c.d.e = "aa" , entry 1 +
+     a.c.d = 1 , entry 2      +
+ 
+(1 row)
+
+SELECT gin_debug_jsonpath_value_path('lax    $.a ? (@.b == "foo").c == 1');
+  gin_debug_jsonpath_value_path   
+----------------------------------
+ OR                              +
+   AND                           +
+     OR                          +
+       #.a.#.b = "foo" , entry 3 +
+       #.a.b = "foo" , entry 4   +
+     #.a.#.c = 1 , entry 2       +
+   AND                           +
+     OR                          +
+       #.a.#.b = "foo" , entry 3 +
+       #.a.b = "foo" , entry 4   +
+     #.a.c = 1 , entry 5         +
+   AND                           +
+     OR                          +
+       a.#.b = "foo" , entry 10  +
+       a.b = "foo" , entry 11    +
+     a.#.c = 1 , entry 8         +
+   AND                           +
+     a.c = 1 , entry 9           +
+     OR                          +
+       a.#.b = "foo" , entry 10  +
+       a.b = "foo" , entry 11    +
+ 
+(1 row)
+
+SELECT gin_debug_jsonpath_value_path('strict $.a ? (@.b == "foo").c == 1');
+ gin_debug_jsonpath_value_path 
+-------------------------------
+ AND                          +
+   a.b = "foo" , entry 0      +
+   a.c = 1 , entry 1          +
+ 
+(1 row)
+
+SELECT gin_debug_jsonpath_value_path('lax    $.a ? (@.b == "foo") == 1');
+  gin_debug_jsonpath_value_path   
+----------------------------------
+ OR                              +
+   AND                           +
+     OR                          +
+       #.a.#.b = "foo" , entry 0 +
+       #.a.b = "foo" , entry 1   +
+     #.a = 1 , entry 2           +
+   AND                           +
+     a = 1 , entry 3             +
+     OR                          +
+       a.#.b = "foo" , entry 4   +
+       a.b = "foo" , entry 5     +
+ 
+(1 row)
+
+SELECT gin_debug_jsonpath_value_path('strict $.a ? (@.b == "foo") == 1');
+ gin_debug_jsonpath_value_path 
+-------------------------------
+ AND                          +
+   a = 1 , entry 0            +
+   a.b = "foo" , entry 1      +
+ 
+(1 row)
+
+SELECT gin_debug_jsonpath_value_path('lax    $.a ? (@.b == "foo")');
+ gin_debug_jsonpath_value_path 
+-------------------------------
+ NULL                         +
+ 
+(1 row)
+
+SELECT gin_debug_jsonpath_value_path('strict $.a ? (@.b == "foo")');
+ gin_debug_jsonpath_value_path 
+-------------------------------
+ NULL                         +
+ 
+(1 row)
+
+SELECT gin_debug_jsonpath_value_path('lax    exists($.a ? (@.b == "foo"))');
+ gin_debug_jsonpath_value_path  
+--------------------------------
+ OR                            +
+   OR                          +
+     #.a.#.b = "foo" , entry 0 +
+     #.a.b = "foo" , entry 1   +
+   OR                          +
+     a.#.b = "foo" , entry 2   +
+     a.b = "foo" , entry 3     +
+ 
+(1 row)
+
+SELECT gin_debug_jsonpath_value_path('strict exists($.a ? (@.b == "foo"))');
+ gin_debug_jsonpath_value_path 
+-------------------------------
+ a.b = "foo" , entry 0        +
+ 
+(1 row)
+
+SELECT gin_debug_jsonpath_value_path('lax    exists($.a ? (@.b == "foo").c)');
+ gin_debug_jsonpath_value_path  
+--------------------------------
+ OR                            +
+   OR                          +
+     #.a.#.b = "foo" , entry 2 +
+     #.a.b = "foo" , entry 3   +
+   OR                          +
+     #.a.#.b = "foo" , entry 2 +
+     #.a.b = "foo" , entry 3   +
+   OR                          +
+     a.#.b = "foo" , entry 6   +
+     a.b = "foo" , entry 7     +
+   OR                          +
+     a.#.b = "foo" , entry 6   +
+     a.b = "foo" , entry 7     +
+ 
+(1 row)
+
+SELECT gin_debug_jsonpath_value_path('strict exists($.a ? (@.b == "foo").c)');
+ gin_debug_jsonpath_value_path 
+-------------------------------
+ a.b = "foo" , entry 0        +
+ 
+(1 row)
+
+SELECT gin_debug_jsonpath_path_value('lax    $');
+ gin_debug_jsonpath_path_value 
+-------------------------------
+ NULL                         +
+ 
+(1 row)
+
+SELECT gin_debug_jsonpath_path_value('strict $');
+ gin_debug_jsonpath_path_value 
+-------------------------------
+ NULL                         +
+ 
+(1 row)
+
+SELECT gin_debug_jsonpath_path_value('lax    $.a');
+ gin_debug_jsonpath_path_value 
+-------------------------------
+ NULL                         +
+ 
+(1 row)
+
+SELECT gin_debug_jsonpath_path_value('strict $.a');
+ gin_debug_jsonpath_path_value 
+-------------------------------
+ NULL                         +
+ 
+(1 row)
+
+SELECT gin_debug_jsonpath_path_value('lax    exists($)');
+ gin_debug_jsonpath_path_value 
+-------------------------------
+ NULL                         +
+ 
+(1 row)
+
+SELECT gin_debug_jsonpath_path_value('strict exists($)');
+ gin_debug_jsonpath_path_value 
+-------------------------------
+ NULL                         +
+ 
+(1 row)
+
+SELECT gin_debug_jsonpath_path_value('lax    exists($.a)');
+ gin_debug_jsonpath_path_value 
+-------------------------------
+ OR                           +
+   #.a = * , entry 0          +
+   a = * , entry 1            +
+ 
+(1 row)
+
+SELECT gin_debug_jsonpath_path_value('strict exists($.a)');
+ gin_debug_jsonpath_path_value 
+-------------------------------
+ a = * , entry 0              +
+ 
+(1 row)
+
+SELECT gin_debug_jsonpath_path_value('lax    exists($.a.b)');
+ gin_debug_jsonpath_path_value 
+-------------------------------
+ OR                           +
+   #.a.#.b = * , entry 0      +
+   #.a.b = * , entry 1        +
+   a.#.b = * , entry 2        +
+   a.b = * , entry 3          +
+ 
+(1 row)
+
+SELECT gin_debug_jsonpath_path_value('strict exists($.a.b)');
+ gin_debug_jsonpath_path_value 
+-------------------------------
+ a.b = * , entry 0            +
+ 
+(1 row)
+
+SELECT gin_debug_jsonpath_path_value('lax    exists($ ? (@.b == 3).c.d)');
+ gin_debug_jsonpath_path_value 
+-------------------------------
+ OR                           +
+   OR                         +
+     #.b = 3 , entry 6        +
+     b = 3 , entry 7          +
+   OR                         +
+     #.b = 3 , entry 6        +
+     b = 3 , entry 7          +
+   OR                         +
+     #.b = 3 , entry 6        +
+     b = 3 , entry 7          +
+   OR                         +
+     #.b = 3 , entry 6        +
+     b = 3 , entry 7          +
+ 
+(1 row)
+
+SELECT gin_debug_jsonpath_path_value('strict exists($ ? (@.b == 3).c.d)');
+ gin_debug_jsonpath_path_value 
+-------------------------------
+ b = 3 , entry 0              +
+ 
+(1 row)
+
+SELECT gin_debug_jsonpath_path_value('lax    exists($.a ? (@.b == 3).c.d ? (@.e == "aa" || @ == 1))');
+      gin_debug_jsonpath_path_value       
+------------------------------------------
+ OR                                      +
+   AND                                   +
+     OR                                  +
+       #.a.#.b = 3 , entry 42            +
+       #.a.b = 3 , entry 43              +
+     OR                                  +
+       #.a.#.c.#.d.#.e = "aa" , entry 44 +
+       #.a.#.c.#.d.e = "aa" , entry 45   +
+       #.a.#.c.#.d = 1 , entry 46        +
+     OR                                  +
+       #.a.#.c.d.#.e = "aa" , entry 47   +
+       #.a.#.c.d.e = "aa" , entry 48     +
+       #.a.#.c.d = 1 , entry 49          +
+     OR                                  +
+       #.a.c.#.d.#.e = "aa" , entry 50   +
+       #.a.c.#.d.e = "aa" , entry 51     +
+       #.a.c.#.d = 1 , entry 52          +
+     OR                                  +
+       #.a.c.d.#.e = "aa" , entry 53     +
+       #.a.c.d.e = "aa" , entry 54       +
+       #.a.c.d = 1 , entry 55            +
+   AND                                   +
+     OR                                  +
+       #.a.#.b = 3 , entry 42            +
+       #.a.b = 3 , entry 43              +
+     OR                                  +
+       #.a.#.c.#.d.#.e = "aa" , entry 44 +
+       #.a.#.c.#.d.e = "aa" , entry 45   +
+       #.a.#.c.#.d = 1 , entry 46        +
+     OR                                  +
+       #.a.#.c.d.#.e = "aa" , entry 47   +
+       #.a.#.c.d.e = "aa" , entry 48     +
+       #.a.#.c.d = 1 , entry 49          +
+     OR                                  +
+       #.a.c.#.d.#.e = "aa" , entry 50   +
+       #.a.c.#.d.e = "aa" , entry 51     +
+       #.a.c.#.d = 1 , entry 52          +
+     OR                                  +
+       #.a.c.d.#.e = "aa" , entry 53     +
+       #.a.c.d.e = "aa" , entry 54       +
+       #.a.c.d = 1 , entry 55            +
+   AND                                   +
+     OR                                  +
+       #.a.#.b = 3 , entry 42            +
+       #.a.b = 3 , entry 43              +
+     OR                                  +
+       #.a.#.c.#.d.#.e = "aa" , entry 44 +
+       #.a.#.c.#.d.e = "aa" , entry 45   +
+       #.a.#.c.#.d = 1 , entry 46        +
+     OR                                  +
+       #.a.#.c.d.#.e = "aa" , entry 47   +
+       #.a.#.c.d.e = "aa" , entry 48     +
+       #.a.#.c.d = 1 , entry 49          +
+     OR                                  +
+       #.a.c.#.d.#.e = "aa" , entry 50   +
+       #.a.c.#.d.e = "aa" , entry 51     +
+       #.a.c.#.d = 1 , entry 52          +
+     OR                                  +
+       #.a.c.d.#.e = "aa" , entry 53     +
+       #.a.c.d.e = "aa" , entry 54       +
+       #.a.c.d = 1 , entry 55            +
+   AND                                   +
+     OR                                  +
+       #.a.#.b = 3 , entry 42            +
+       #.a.b = 3 , entry 43              +
+     OR                                  +
+       #.a.#.c.#.d.#.e = "aa" , entry 44 +
+       #.a.#.c.#.d.e = "aa" , entry 45   +
+       #.a.#.c.#.d = 1 , entry 46        +
+     OR                                  +
+       #.a.#.c.d.#.e = "aa" , entry 47   +
+       #.a.#.c.d.e = "aa" , entry 48     +
+       #.a.#.c.d = 1 , entry 49          +
+     OR                                  +
+       #.a.c.#.d.#.e = "aa" , entry 50   +
+       #.a.c.#.d.e = "aa" , entry 51     +
+       #.a.c.#.d = 1 , entry 52          +
+     OR                                  +
+       #.a.c.d.#.e = "aa" , entry 53     +
+       #.a.c.d.e = "aa" , entry 54       +
+       #.a.c.d = 1 , entry 55            +
+   AND                                   +
+     OR                                  +
+       a.#.b = 3 , entry 98              +
+       a.b = 3 , entry 99                +
+     OR                                  +
+       a.#.c.#.d.#.e = "aa" , entry 100  +
+       a.#.c.#.d.e = "aa" , entry 101    +
+       a.#.c.#.d = 1 , entry 102         +
+     OR                                  +
+       a.#.c.d.#.e = "aa" , entry 103    +
+       a.#.c.d.e = "aa" , entry 104      +
+       a.#.c.d = 1 , entry 105           +
+     OR                                  +
+       a.c.#.d.#.e = "aa" , entry 106    +
+       a.c.#.d.e = "aa" , entry 107      +
+       a.c.#.d = 1 , entry 108           +
+     OR                                  +
+       a.c.d.#.e = "aa" , entry 109      +
+       a.c.d.e = "aa" , entry 110        +
+       a.c.d = 1 , entry 111             +
+   AND                                   +
+     OR                                  +
+       a.#.b = 3 , entry 98              +
+       a.b = 3 , entry 99                +
+     OR                                  +
+       a.#.c.#.d.#.e = "aa" , entry 100  +
+       a.#.c.#.d.e = "aa" , entry 101    +
+       a.#.c.#.d = 1 , entry 102         +
+     OR                                  +
+       a.#.c.d.#.e = "aa" , entry 103    +
+       a.#.c.d.e = "aa" , entry 104      +
+       a.#.c.d = 1 , entry 105           +
+     OR                                  +
+       a.c.#.d.#.e = "aa" , entry 106    +
+       a.c.#.d.e = "aa" , entry 107      +
+       a.c.#.d = 1 , entry 108           +
+     OR                                  +
+       a.c.d.#.e = "aa" , entry 109      +
+       a.c.d.e = "aa" , entry 110        +
+       a.c.d = 1 , entry 111             +
+   AND                                   +
+     OR                                  +
+       a.#.b = 3 , entry 98              +
+       a.b = 3 , entry 99                +
+     OR                                  +
+       a.#.c.#.d.#.e = "aa" , entry 100  +
+       a.#.c.#.d.e = "aa" , entry 101    +
+       a.#.c.#.d = 1 , entry 102         +
+     OR                                  +
+       a.#.c.d.#.e = "aa" , entry 103    +
+       a.#.c.d.e = "aa" , entry 104      +
+       a.#.c.d = 1 , entry 105           +
+     OR                                  +
+       a.c.#.d.#.e = "aa" , entry 106    +
+       a.c.#.d.e = "aa" , entry 107      +
+       a.c.#.d = 1 , entry 108           +
+     OR                                  +
+       a.c.d.#.e = "aa" , entry 109      +
+       a.c.d.e = "aa" , entry 110        +
+       a.c.d = 1 , entry 111             +
+   AND                                   +
+     OR                                  +
+       a.#.b = 3 , entry 98              +
+       a.b = 3 , entry 99                +
+     OR                                  +
+       a.#.c.#.d.#.e = "aa" , entry 100  +
+       a.#.c.#.d.e = "aa" , entry 101    +
+       a.#.c.#.d = 1 , entry 102         +
+     OR                                  +
+       a.#.c.d.#.e = "aa" , entry 103    +
+       a.#.c.d.e = "aa" , entry 104      +
+       a.#.c.d = 1 , entry 105           +
+     OR                                  +
+       a.c.#.d.#.e = "aa" , entry 106    +
+       a.c.#.d.e = "aa" , entry 107      +
+       a.c.#.d = 1 , entry 108           +
+     OR                                  +
+       a.c.d.#.e = "aa" , entry 109      +
+       a.c.d.e = "aa" , entry 110        +
+       a.c.d = 1 , entry 111             +
+ 
+(1 row)
+
+SELECT gin_debug_jsonpath_path_value('strict exists($.a ? (@.b == 3).c.d ? (@.e == "aa" || @ == 1))');
+ gin_debug_jsonpath_path_value 
+-------------------------------
+ AND                          +
+   a.b = 3 , entry 0          +
+   OR                         +
+     a.c.d.e = "aa" , entry 1 +
+     a.c.d = 1 , entry 2      +
+ 
+(1 row)
+
+SELECT gin_debug_jsonpath_path_value('lax    $.a ? (@.b == "foo").c == 1');
+  gin_debug_jsonpath_path_value   
+----------------------------------
+ OR                              +
+   AND                           +
+     OR                          +
+       #.a.#.b = "foo" , entry 3 +
+       #.a.b = "foo" , entry 4   +
+     #.a.#.c = 1 , entry 2       +
+   AND                           +
+     OR                          +
+       #.a.#.b = "foo" , entry 3 +
+       #.a.b = "foo" , entry 4   +
+     #.a.c = 1 , entry 5         +
+   AND                           +
+     OR                          +
+       a.#.b = "foo" , entry 10  +
+       a.b = "foo" , entry 11    +
+     a.#.c = 1 , entry 8         +
+   AND                           +
+     a.c = 1 , entry 9           +
+     OR                          +
+       a.#.b = "foo" , entry 10  +
+       a.b = "foo" , entry 11    +
+ 
+(1 row)
+
+SELECT gin_debug_jsonpath_path_value('strict $.a ? (@.b == "foo").c == 1');
+ gin_debug_jsonpath_path_value 
+-------------------------------
+ AND                          +
+   a.b = "foo" , entry 0      +
+   a.c = 1 , entry 1          +
+ 
+(1 row)
+
+SELECT gin_debug_jsonpath_path_value('lax    $.a ? (@.b == "foo") == 1');
+  gin_debug_jsonpath_path_value   
+----------------------------------
+ OR                              +
+   AND                           +
+     OR                          +
+       #.a.#.b = "foo" , entry 0 +
+       #.a.b = "foo" , entry 1   +
+     #.a = 1 , entry 2           +
+   AND                           +
+     a = 1 , entry 3             +
+     OR                          +
+       a.#.b = "foo" , entry 4   +
+       a.b = "foo" , entry 5     +
+ 
+(1 row)
+
+SELECT gin_debug_jsonpath_path_value('strict $.a ? (@.b == "foo") == 1');
+ gin_debug_jsonpath_path_value 
+-------------------------------
+ AND                          +
+   a = 1 , entry 0            +
+   a.b = "foo" , entry 1      +
+ 
+(1 row)
+
+SELECT gin_debug_jsonpath_path_value('lax    $.a ? (@.b == "foo")');
+ gin_debug_jsonpath_path_value 
+-------------------------------
+ NULL                         +
+ 
+(1 row)
+
+SELECT gin_debug_jsonpath_path_value('strict $.a ? (@.b == "foo")');
+ gin_debug_jsonpath_path_value 
+-------------------------------
+ NULL                         +
+ 
+(1 row)
+
+SELECT gin_debug_jsonpath_path_value('lax    exists($.a ? (@.b == "foo"))');
+ gin_debug_jsonpath_path_value  
+--------------------------------
+ OR                            +
+   OR                          +
+     #.a.#.b = "foo" , entry 0 +
+     #.a.b = "foo" , entry 1   +
+   OR                          +
+     a.#.b = "foo" , entry 2   +
+     a.b = "foo" , entry 3     +
+ 
+(1 row)
+
+SELECT gin_debug_jsonpath_path_value('strict exists($.a ? (@.b == "foo"))');
+ gin_debug_jsonpath_path_value 
+-------------------------------
+ a.b = "foo" , entry 0        +
+ 
+(1 row)
+
+SELECT gin_debug_jsonpath_path_value('lax    exists($.a ? (@.b == "foo").c)');
+ gin_debug_jsonpath_path_value  
+--------------------------------
+ OR                            +
+   OR                          +
+     #.a.#.b = "foo" , entry 2 +
+     #.a.b = "foo" , entry 3   +
+   OR                          +
+     #.a.#.b = "foo" , entry 2 +
+     #.a.b = "foo" , entry 3   +
+   OR                          +
+     a.#.b = "foo" , entry 6   +
+     a.b = "foo" , entry 7     +
+   OR                          +
+     a.#.b = "foo" , entry 6   +
+     a.b = "foo" , entry 7     +
+ 
+(1 row)
+
+SELECT gin_debug_jsonpath_path_value('strict exists($.a ? (@.b == "foo").c)');
+ gin_debug_jsonpath_path_value 
+-------------------------------
+ a.b = "foo" , entry 0        +
+ 
+(1 row)
+
 ---table and index
 select count(*) from test_jsquery where (v->>'review_helpful_votes')::int4 > 0;
  count 
