@@ -546,6 +546,35 @@ appendJsonPathExprNode(ExtractedNode *result, ExtractedNode *node, PathItem *pat
 }
 
 static ExtractedNode *
+extractJsonPathExists(JsonPathItem *jpi, bool lax, PathItem *path)
+{
+	List	   *paths = NIL;
+	ListCell   *lc;
+	ExtractedNode *result;
+
+	if (!recursiveExtractJsonPath(jpi, lax, false, false /* FIXME */,
+								  path, &paths, NIL))
+		return NULL;
+
+	result = NULL;
+
+	foreach(lc, paths)
+	{
+		ExtractedJsonPath *ejp = lfirst(lc);
+		ExtractedNode *node = palloc(sizeof(ExtractedNode));
+
+		node->type = eAny;
+		node->hint = jsqIndexDefault;
+		node->path = ejp->path;
+		node->indirect = ejp->indirect;
+
+		result = appendJsonPathExprNode(result, node, path, ejp->filters);
+	}
+
+	return result;
+}
+
+static ExtractedNode *
 recursiveExtractJsonPathExpr(JsonPathItem *jpi, bool lax, bool not,
 							 PathItem *path)
 {
@@ -734,35 +763,12 @@ recursiveExtractJsonPathExpr(JsonPathItem *jpi, bool lax, bool not,
 
 		case jpiExists:
 			{
-				List	   *paths = NIL;
-				ListCell   *lc;
-
 				if (not)
 					return NULL;
 
 				jspGetArg(jpi, &elem);
 
-				if (!recursiveExtractJsonPath(&elem, lax, not, false /* FIXME */,
-											  path, &paths, NIL))
-					return NULL;
-
-				result = NULL;
-
-				foreach(lc, paths)
-				{
-					ExtractedJsonPath *ejp = lfirst(lc);
-					ExtractedNode *node = palloc(sizeof(ExtractedNode));
-
-					node->type = eAny;
-					node->hint = jsqIndexDefault;
-					node->path = ejp->path;
-					node->indirect = ejp->indirect;
-
-					result = appendJsonPathExprNode(result, node, path,
-													ejp->filters);
-				}
-
-				return result;
+				return extractJsonPathExists(&elem, lax, path);
 			}
 
 		default:
@@ -1324,15 +1330,17 @@ extractJsQuery(JsQuery *jq, MakeEntryHandler makeHandler,
  * Turn jsonpath into tree of entries using user-provided handler.
  */
 ExtractedNode *
-extractJsonPath(JsonPath *jp, MakeEntryHandler makeHandler,
+extractJsonPath(JsonPath *jp, bool exists, MakeEntryHandler makeHandler,
 				CheckEntryHandler checkHandler, Pointer extra)
 {
 	ExtractedNode	*root;
 	JsonPathItem	jsp;
-	bool				lax = (jp->header & JSONPATH_LAX) != 0;
+	bool			lax = (jp->header & JSONPATH_LAX) != 0;
 
 	jspInit(&jsp, jp);
-	root = recursiveExtractJsonPathExpr(&jsp, lax, false, NULL);
+	root = exists
+		? extractJsonPathExists(&jsp, lax, NULL)
+		: recursiveExtractJsonPathExpr(&jsp, lax, false, NULL);
 	if (root)
 	{
 		flatternTree(root);
