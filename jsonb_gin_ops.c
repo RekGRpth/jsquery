@@ -780,7 +780,7 @@ gin_debug_jsonpath_value_path(PG_FUNCTION_ARGS)
 	char	   *s;
 
 	jp = PG_GETARG_JSONPATH_P(0);
-	root = extractJsonPath(jp, false, make_value_path_entry_handler,
+	root = extractJsonPath(jp, false, false, make_value_path_entry_handler,
 						   check_value_path_entry_handler, (Pointer)&e);
 	s = debugExtractedQuery(root);
 
@@ -831,6 +831,7 @@ gin_extract_jsonb_query_value_path(PG_FUNCTION_ARGS)
 			if (strategy != JsQueryMatchStrategyNumber)
 				root = extractJsonPath(PG_GETARG_JSONPATH_P(0),
 									   strategy == JsonpathExistsStrategyNumber,
+									   false,
 									   make_value_path_entry_handler,
 									   check_value_path_entry_handler,
 									   (Pointer)&e);
@@ -1259,7 +1260,7 @@ gin_debug_jsonpath_path_value(PG_FUNCTION_ARGS)
 	char	   *s;
 
 	jp = PG_GETARG_JSONPATH_P(0);
-	root = extractJsonPath(jp, false, make_path_value_entry_handler,
+	root = extractJsonPath(jp, false, true, make_path_value_entry_handler,
 						   check_path_value_entry_handler, (Pointer)&e);
 	s = debugExtractedQuery(root);
 
@@ -1295,6 +1296,7 @@ gin_extract_jsonb_query_path_value(PG_FUNCTION_ARGS)
 			if (strategy != JsQueryMatchStrategyNumber)
 				root = extractJsonPath(PG_GETARG_JSONPATH_P(0),
 									   strategy == JsonpathExistsStrategyNumber,
+									   true,
 									   make_path_value_entry_handler,
 									   check_path_value_entry_handler,
 									   (Pointer) &e);
