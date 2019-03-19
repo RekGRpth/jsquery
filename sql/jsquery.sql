@@ -508,6 +508,16 @@ SELECT gin_debug_jsonpath_path_value('strict exists($.a ? (@.b == "foo"))');
 SELECT gin_debug_jsonpath_path_value('lax    exists($.a ? (@.b == "foo").c)');
 SELECT gin_debug_jsonpath_path_value('strict exists($.a ? (@.b == "foo").c)');
 
+select gin_debug_jsonpath_path_value('strict $.a.b == 1');
+select gin_debug_jsonpath_path_value('lax    $.a.b == 1');
+select gin_debug_jsonpath_path_value('strict $.a.b[*] == 1');
+select gin_debug_jsonpath_path_value('lax    $.a.b[*] == 1');
+select gin_debug_jsonpath_path_value('strict $.a[*].b[*] == 1');
+select gin_debug_jsonpath_path_value('lax    $.a[*].b[*] == 1');
+select gin_debug_jsonpath_path_value('strict $.a.b[*][*] == 1');
+select gin_debug_jsonpath_path_value('lax    $.a.b[*][*] == 1');
+select gin_debug_jsonpath_path_value('strict $.a[*].b[*] == 1');
+select gin_debug_jsonpath_path_value('lax    $.a[*].b[*] == 1');
 
 ---table and index
 
